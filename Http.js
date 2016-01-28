@@ -14,10 +14,10 @@ function Http() {
    * @return {void}
    */
   this.sendGet = function (options, cb) {
-    var key = this.generateKey(options);
+    var optionsJson = _.trim(JSON.stringify(options).replace(/[\s\r\n]/g, ''));
 
-    if (mockings[key] !== undefined) {
-      return cb.apply(null, mockings[key]);
+    if (mockings[optionsJson] !== undefined) {
+      return cb.apply(null, mockings[optionsJson]);
     }
 
     request.get(options, cb);
@@ -31,10 +31,10 @@ function Http() {
    * @return {void}
    */
   this.sendPost = function (options, cb) {
-    var key = this.generateKey(options);
+    var optionsJson = _.trim(JSON.stringify(options).replace(/[\s\r\n]/g, ''));
 
-    if (mockings[key] !== undefined) {
-      return cb.apply(null, mockings[key]);
+    if (mockings[optionsJson] !== undefined) {
+      return cb.apply(null, mockings[optionsJson]);
     }
     
     request.post(options, cb);
@@ -48,13 +48,9 @@ function Http() {
    * @return {void}
    */
   this.mock = function (options, data) {
-    var key = this.generateKey(options);
+    var optionsJson = _.trim(JSON.stringify(options).replace(/[\s\r\n]/g, ''));
 
-    mockings[key] = data;
-  };
-
-  this.generateKey = function(options) {
-    return _.trim(JSON.stringify(options).replace(/[\s\r\n]/g, ''));
+    mockings[optionsJson] = data;
   };
 
   /**

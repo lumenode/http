@@ -13,7 +13,9 @@
   "keywords": [
     "ioc"
   ],
-  "author": "Iurii Krevnyi",
+  "author": {
+    "name": "Iurii Krevnyi"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/lumenode/http/issues"
@@ -26,5 +28,10 @@
   "devDependencies": {
     "mocha": "^2.3.4",
     "should": "^8.0.2"
-  }
+  },
+  "gitHead": "97656113d4acba8ab587166f8ee4d6d20c966225",
+  "readme": "ERROR: No README data found!",
+  "_id": "lumenode-http@1.0.0",
+  "_shasum": "3d02494be792809aac152ad39f95722df9262de6",
+  "_from": "lumenode-http@*"
 }
