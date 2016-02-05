@@ -1,44 +1,56 @@
 'use strict';
 
-var _ = require('lodash');
-var request = require('request');
+let request = require('request');
+let aliases = {
+  'delete': 'del'
+};
 
-function Http() {
-  var mockings = {};
+class HttpBackend {
 
-  /**
-   * Fires GET request to specific url
-   *
-   * @param  {Object}   options
-   * @param  {Function} cb
-   * @return {void}
-   */
-  this.sendGet = function (options, cb) {
-    var optionsJson = _.trim(JSON.stringify(options).replace(/[\s\r\n]/g, ''));
-
-    if (mockings[optionsJson] !== undefined) {
-      return cb.apply(null, mockings[optionsJson]);
-    }
-
-    request.get(options, cb);
-  };
+  constructor() {
+    this.mocks = {};
+  }
 
   /**
-   * Fires POST request to specific url
+   * Fires any method request to specific url
    *
+   * @param  {String}   method - Any method to be sent. E.x. 'GET', 'PUT'
    * @param  {Object}   options
-   * @param  {Function} cb
-   * @return {void}
+   * @param  {Function} cb - callback
+   * @return Result of invoking callback function with mocked data OR it makes
+   *         original request if stringified params are missed in mocks.
    */
-  this.sendPost = function (options, cb) {
-    var optionsJson = _.trim(JSON.stringify(options).replace(/[\s\r\n]/g, ''));
+  send(method, options, cb) {
+    let optionsJson = JSON.stringify(options);
+    let methodOfRequest;
+    let methodLowerCased = method.toLowerCase();
 
-    if (mockings[optionsJson] !== undefined) {
-      return cb.apply(null, mockings[optionsJson]);
+    /**
+     * request module has all http send methods available as .methodname. For
+     * instance `.put()`, so if it is called with method, which does not exists,
+     * the Error should be thrown.
+     */
+    try {
+      methodOfRequest = request[methodLowerCased];
+    } catch (e) {
+      throw new Error(`The method "${method}" is absent in standard methods list`);
     }
-    
-    request.post(options, cb);
-  };
+
+    /**
+     * Method could have alias, for example `delete()` has alias `del()`
+     */
+    methodOfRequest = methodOfRequest || request[aliases[methodLowerCased]];
+
+    if (!methodOfRequest) {
+      throw new Error(`The method "${method}" does not exists`);
+    }
+
+    if (this.mocks[optionsJson] !== undefined) {
+      return cb.apply(null, this.mocks[optionsJson]);
+    }
+
+    methodOfRequest.call(request, options, cb);
+  }
 
   /**
    * Mocks request by it options
@@ -47,29 +59,30 @@ function Http() {
    * @param  {Mixed} data
    * @return {void}
    */
-  this.mock = function (options, data) {
-    var optionsJson = _.trim(JSON.stringify(options).replace(/[\s\r\n]/g, ''));
+  mock(options, data) {
+    let optionsJson = JSON.stringify(options);
 
-    mockings[optionsJson] = data;
-  };
-
-  /**
-   * Clear mockings cacha
-   *
-   * @return {void}
-   */
-  this.clearMocks = function () {
-    mockings = {};
-  };
+    this.mocks[optionsJson] = data;
+  }
 
   /**
-   * Show list of avaliable mocks
+   * List all available mocks.
    *
    * @return {Object}
    */
-  this.listMocks = function () {
-    return mockings;
-  };
+  listMocks() {
+    return this.mocks;
+  }
+
+  /**
+   * Remove all the mocks.
+   *
+   * @return {void}
+   */
+  clearMocks() {
+    this.mocks = {};
+  }
+
 }
 
-module.exports = Http;
+module.exports = HttpBackend;
